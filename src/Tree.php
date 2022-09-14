@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Pro\Import;
 
+use TreeCore;
+
 /**
  * Clase para imprimir en pantalla un arbol en HTML 
  * con los tags indicados (por defecto ul/li) 
@@ -11,7 +13,7 @@ namespace Pro\Import;
  * @param string Nivel Inferior
  * @return string HTML formateado
  */
-class Tree
+class Tree extends TreeCore
 {
     public $salida = "";
     
@@ -22,8 +24,6 @@ class Tree
     {
         $tienehijos = count($arbol['children']);
 
-        
-       
         if($tienehijos) $this->salida .= "<".$subnivel.">".$arbol['name']."<".$nivel.">";   
         else $this->salida .= "<".$subnivel.">".$arbol['name']."</".$subnivel.">";   
 
@@ -35,15 +35,13 @@ class Tree
             }
         }
         
-
-        if($tienehijos) $this->salida .= "</".$nivel."></li>";   
-       
+        if($tienehijos) $this->salida .= "</".$nivel."></".$subnivel.">";   
        
     }
 
     public function __toString()
     {
-        echo $this->salida;
+        return $this->salida;
     }
 
     
