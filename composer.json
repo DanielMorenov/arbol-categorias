@@ -1,0 +1,10 @@
+{
+    "name": "pro/import",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Pro\\Import\\": "src/"
+        }
+    },
+    "require": {}
+}
