@@ -14,23 +14,22 @@ require 'vendor/autoload.php';
 use Pro\Import\Tree;
 use Pro\Import\Categories;
 
-// Pasamos el arbol (array) u los nodos HTML
+// Obtenemos Arbol con SQL
+$inicio = microtime();
+$salida = Categories::cargarArbol(0);
+$finSQL = microtime()-$inicio;
 
-echo "Estructura de arbol:<br>";
-$init = new Tree(Category::getRootCategory()->recurseLiteCategTree(0),"ul","li");
-echo $init;
 
-echo "<br>Array deseado:<br>";
-var_dump(Category::getRootCategory()->recurseLiteCategTree(0));
+echo "Estructura de Categorias:<br>";
 
-echo "<br><br>Array final: <br>";
+$categorias = new Categories();
 
-$salida = Categories::cargarArbol(1);
+echo "<br>";
+$inicio = microtime();
+echo Tree::mostrarArbol($categorias,"ul","li",false,0);
+$finARRAY = microtime()-$inicio;
 
-var_dump($salida);
+echo "Duración construcción con SQL (en ms)   : ".round($finSQL,10);
+echo "<hr>";
+echo "Duración construcción con arrays (en ms): ".round($finARRAY,10)." (un ".round($finARRAY/$finSQL*100,2)."% del tiempo empleado por SQL)";
 
-echo "<br><br>Salida final:<br>";
-$init2 = new Tree(Categories::cargarArbol(1),"ul","li");
-echo $init2;
-
-var_dump (Categories::cargarArbol(1));
