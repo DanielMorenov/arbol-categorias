@@ -105,15 +105,15 @@ class Categories
      */
     public static function getBreadcrumbs(int $id_category): string
     {
-        
-       
-        
         $categorias = SELF::getCategories();
         $categorias = SELF::indexaArray($categorias, SELF::ID_CATEGORY);  
 
+        // Tratamos los elementos huérfanos
+        if(!$categorias[$id_category][SELF::PARENT]) return "No existe breadcrumbs para este elemento";
 
         $salida = $categorias[$id_category][SELF::NAME];
 
+        // Tratamiento del ultimo elemento recursivo con un return earlier
         if($categorias[$id_category][SELF::IS_ROOT]) return $categorias[$id_category][SELF::NAME];
 
         foreach ($categorias as $categoria)

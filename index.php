@@ -28,4 +28,4 @@ echo $arbol;
 
 echo "<hr>";
 
-echo Categories::getBreadcrumbs(13);
+for($i=0;$i<16;$i++) echo "<br>".Categories::getBreadcrumbs($i);
