@@ -18,32 +18,14 @@ $categorias = new Categories();
 
 echo "<hr>";
 
-var_dump($categorias->arbol);
+echo $categorias;
 
 echo "<hr>";
 
-echo new Tree($categorias->arbol);
+$arbol = new Tree($categorias->getListado(), "ol","li",true);
 
-echo new Tree($categorias->arbol, "ol","li", false);
+echo $arbol;
 
-$a = $categorias->resultado;
 echo "<hr>";
 
-
-$indices = [];
-foreach($a as $item)
-{
-    $indices[]=(int)$item['id_category'];
-}
-$valores = array_values($a);
-
-$final = array_combine($indices, $valores);
-
-foreach($final as $index => $item)
-{
-    echo "<br>Clave: ".$index." -- "." Valor: ";
-    var_dump($item);
-}
-
-
-
+echo Categories::getBreadcrumbs(13);
