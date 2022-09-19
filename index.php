@@ -22,7 +22,7 @@ echo $categorias;
 
 echo "<hr>";
 
-$arbol = new Tree($categorias->getListado(), "ol","li",true);
+$arbol = new Tree($categorias->getListado(), "ul","li",true);
 
 echo $arbol;
 

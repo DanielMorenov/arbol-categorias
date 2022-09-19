@@ -38,11 +38,8 @@ class Tree
      * de jerarquia y visualización opcionales
      * 
      * @param array $elementos Array a jerarquizar.
-     * @param array $mapa Mapa de indices MÍNIMO para interpretar el arbol:
-     *              (ID_ELEMENT, NAME, PARENT, IS_ROOT) 
      * @param string $nivel Nivel de jerarquia superior
      * @param string $nivel Nivel de jerarquia inferior
-     * @param bool $mostrarRaiz Si se quiere visualizar el elemento raiz
      * 
      * @return string HTML con el arbol jerarquizado
      */
@@ -59,7 +56,7 @@ class Tree
      /**
      * Genera arbol de elementos
      * @param array $elementos array de elementos
-     * @param int $nodo El nodo desde el que crear el arbol
+     * @param int $index El nodo desde el que crear el arbol
      * @return array Arbol resultante
      */
     public static function generaArbol(array $elementos, int $index = 0) : array
@@ -91,10 +88,10 @@ class Tree
      * Dado un id, devuelve el elemento
      * 
      * @param array $elementos array de elementos
-     * @param int $id_category id de categoría
+     * @param int $id_cat id de categoría
      * @return array|bool (int)'id-category', (string)'id-name', (int)'id-parent', (int)'is_root', 'active'
      */
-    public static function getElement(array $elementos, int $id_cat = 0)
+    public static function getElement(array $elementos, int $id_cat = 0) : array
     {
         // foreach ($this->listado as $elemento) if((int)$elemento[SELF::NAME]===$id_cat) return $elemento;
         // return false;
@@ -112,7 +109,7 @@ class Tree
      * 
      * @return string HTML del arbol jerarquizado
      */
-    public static function mostrarArbol(array $elementos, string $nivel = "ul", string $subnivel = "li")
+    public static function mostrarArbol(array $elementos, string $nivel = "ul", string $subnivel = "li") : string
     {
         $result = "";
 

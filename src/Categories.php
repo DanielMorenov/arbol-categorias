@@ -46,9 +46,10 @@ class Categories
     /**
      * Método interno para obtener los dados de la BD y guardarlos en 
      * la propiedad $listado. Si se indica categoría, devuelve solo esa categoría
+     * @param  int $categoria Id de categoria para filtrar resultados
      * @return array ['id_category', 'name', 'id_parent', 'is_root_category', 'active']
      */
-    private function getCategories($categoria = false) : array
+    private function getCategories(int $categoria = 0) : array
     {
         if($categoria) $filtro =  _DB_PREFIX_ . 'category.id_category = "'.$categoria.'"';
         else $filtro = '1';
@@ -74,8 +75,9 @@ class Categories
 
     /**
      * Función interna que indexa los elementos por su indice ID_CATEGORY
-     * @param $indice Indice dentro del array por los que se quiere indexar
      * 
+     * @param array $elementos Array con los elementos a indexar
+     * @param $indice Indice dentro del array por los que se quiere indexar
      * @return array Array indexado
      */
     private static function indexaArray(array $elementos, string $indice) : array
@@ -110,7 +112,7 @@ class Categories
 
         foreach ($categorias as $categoria)
         {
-            if( ( (int)$categoria[SELF::ID_CATEGORY] !== (int)$categorias[$id_category][SELF::PARENT] ) || ( (int)$categoria[SELF::IS_ROOT]!== 0)  ) continue;
+            if( ( (int)$categoria[SELF::ID_CATEGORY] !== (int)$categorias[$id_category][SELF::PARENT] )  ) continue;
             $salida = SELF::getBreadcrumbs((int)$categoria[SELF::ID_CATEGORY])." -> ".$salida;
          
             break;
