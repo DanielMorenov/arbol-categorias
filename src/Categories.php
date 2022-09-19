@@ -105,14 +105,20 @@ class Categories
      */
     public static function getBreadcrumbs(int $id_category): string
     {
+        
+       
+        
         $categorias = SELF::getCategories();
         $categorias = SELF::indexaArray($categorias, SELF::ID_CATEGORY);  
 
+
         $salida = $categorias[$id_category][SELF::NAME];
+
+        if($categorias[$id_category][SELF::IS_ROOT]) return $categorias[$id_category][SELF::NAME];
 
         foreach ($categorias as $categoria)
         {
-            if( ( (int)$categoria[SELF::ID_CATEGORY] !== (int)$categorias[$id_category][SELF::PARENT] )  ) continue;
+            if( ( (int)$categoria[SELF::ID_CATEGORY] !== (int)$categorias[$id_category][SELF::PARENT] )   ) continue;
             $salida = SELF::getBreadcrumbs((int)$categoria[SELF::ID_CATEGORY])." -> ".$salida;
          
             break;
