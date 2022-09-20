@@ -22,10 +22,22 @@ echo $categorias;
 
 echo "<hr>";
 
-$arbol = new Tree($categorias->getListado(), "ul","li",true);
+echo $arbol = new Tree($categorias->getArbol());
 
-echo $arbol;
+
 
 echo "<hr>";
 
-for($i=0;$i<16;$i++) echo "<br>".Categories::getBreadcrumbs($i);
+for($i=0;$i<30;$i++) 
+{
+    $j = rand(0,16);
+    $in = microtime(true);
+    echo "<br>getBreadcrumbs($j): ";
+    echo $categorias->getBreadcrumbs($j);
+    $out = microtime(true);
+    $out -=$in;
+    //echo "(".$out.")";
+    $media += $out;
+}
+
+echo "<hr><br>Media: ".($media/30)."ms";

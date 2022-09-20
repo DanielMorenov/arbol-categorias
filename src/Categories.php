@@ -27,6 +27,8 @@ class Categories
      */
     private $listado = [];
 
+    private $arbol = [];
+
     
      /**
      * Carga todas las Categorías en la propiedad $listado y las
@@ -37,10 +39,56 @@ class Categories
     public function __construct(){
         // Obtenemos categorias de la BD
         $this->listado = SELF::getCategories();
+        $this->arbol = SELF::generaArbol();
+    }
 
-        // Las indexamos por el ID_CATEGORY
-        $this->listado = SELF::indexaArray( $this->listado, SELF::ID_CATEGORY);  
+     /**
+     * Genera arbol de elementos
+     * @param array $elementos array de elementos
+     * @param int $index El nodo desde el que crear el arbol
+     * @return array Arbol resultante
+     */
+    public static function generaArbol(int $indice = 0) : array
+    {
+        $elementos = SELF::getCategories();
+        
+        // Si no hay indice definido en la llamada al método, buscamos el primer elemento
+        if($indice===0){
+            foreach ($elementos as $elemento)
+            {
+                if($elemento[SELF::IS_ROOT] !== '1') continue;
+                // Construimos el Arbol en el array de la clase
+                $indice = (int)$elemento[SELF::ID_CATEGORY];
+                break;
+            }
+        }
+        
+        $arbol = SELF::getElement($elementos, $indice);
+        
+        // Le añadimos al array los hijos
+        foreach ($elementos as $index => $elemento) 
+        {
+            if((int)$elemento[SELF::PARENT]!==$indice) continue;
+            $arbol['children'][] = SELF::generaArbol($index);  
+            
+        }
+    
+        return $arbol;
+    }
 
+    /**
+     * Dado un id, devuelve el elemento
+     * 
+     * @param array $elementos array de elementos
+     * @param int $id_cat id de categoría
+     * @return array|bool (int)'id-category', (string)'id_name', (int)'id_parent', (int)'is_root', 'active'
+     */
+    private static function getElement(array &$elementos, int $id_cat = 0) : array
+    {
+        echo "<br>getelement: ";
+        var_dump($elementos[$id_cat]);
+        if($id_cat) return $elementos[$id_cat];
+        else return false;
     }
 
     /**
@@ -49,7 +97,7 @@ class Categories
      * @param  int $categoria Id de categoria para filtrar resultados
      * @return array ['id_category', 'name', 'id_parent', 'is_root_category', 'active']
      */
-    private function getCategories(int $categoria = 0) : array
+    private static function getCategories(int $categoria = 0) : array
     {
         if($categoria) $filtro =  _DB_PREFIX_ . 'category.id_category = "'.$categoria.'"';
         else $filtro = '1';
@@ -59,8 +107,7 @@ class Categories
                 ' . _DB_PREFIX_ . 'category.id_category, 
                 ' . _DB_PREFIX_ . 'category_lang.name, 
                 ' . _DB_PREFIX_ . 'category.id_parent, 
-                ' . _DB_PREFIX_ . 'category.is_root_category, 
-                ' . _DB_PREFIX_ . 'category.active
+                ' . _DB_PREFIX_ . 'category.is_root_category
             FROM ' . _DB_PREFIX_ . 'category 
             INNER JOIN ' . _DB_PREFIX_ . 'category_lang
             ON ' . _DB_PREFIX_ . 'category.id_category = ' . _DB_PREFIX_ . 'category_lang.id_category
@@ -69,23 +116,13 @@ class Categories
             ORDER BY ' . _DB_PREFIX_ . 'category.id_parent ASC, ' . _DB_PREFIX_ . 'category.nleft ASC
         ';
     
-        return \Db::getInstance()->executeS($request);
-    }
-
-
-    /**
-     * Función interna que indexa los elementos por su indice ID_CATEGORY
-     * 
-     * @param array $elementos Array con los elementos a indexar
-     * @param $indice Indice dentro del array por los que se quiere indexar
-     * @return array Array indexado
-     */
-    private static function indexaArray(array $elementos, string $indice) : array
-    {
-        $indices = array_column($elementos,  $indice);
+        $elementos = \Db::getInstance()->executeS($request);
+        $indices = array_column($elementos, 'id_category');
         $valores = array_values($elementos);
+
         return array_combine($indices, $valores);
     }
+
 
     /**
      * Getter del listado de categorías
@@ -97,34 +134,42 @@ class Categories
         return $this->listado;
     }
 
+
+    /**
+     * Getter del arbol de categorías
+     * 
+     * @return array Array de categorías
+     */
+    public function getArbol() : array
+    {
+        return $this->arbol;
+    }
+
+
     /**
      * Retorna un string con los breadcrumbs de la categoría indicada como argumento
      * 
      * @param int $id_category El id de categoría del que queremos obtener las migas de pan
+     * @param array $categorias El array de categorías sobre el que trabajar
      * @return string Breadcrumbs de la categoría
      */
-    public static function getBreadcrumbs(int $id_category): string
+    public function getBreadcrumbs(int $id_category): string
     {
-        $categorias = SELF::getCategories();
-        $categorias = SELF::indexaArray($categorias, SELF::ID_CATEGORY);  
+        if(!isset($this->listado[$id_category]) || $this->listado[$id_category]['id_parent']==='0') return "No existe la categoría o es la raíz";
+        
+        if( $this->listado[$id_category]['is_root_category'] === '1') return $this->listado[$id_category]['name'];
+        else return $this->getBreadcrumbs((int)$this->listado[$id_category]['id_parent'])." -> ".$this->listado[$id_category]['name'];
 
-        // Tratamos los elementos huérfanos
-        if(!$categorias[$id_category][SELF::PARENT]) return "No existe breadcrumbs para este elemento";
-
-        $salida = $categorias[$id_category][SELF::NAME];
-
-        // Tratamiento del ultimo elemento recursivo con un return earlier
-        if($categorias[$id_category][SELF::IS_ROOT]) return $categorias[$id_category][SELF::NAME];
-
-        foreach ($categorias as $categoria)
-        {
-            if( ( (int)$categoria[SELF::ID_CATEGORY] !== (int)$categorias[$id_category][SELF::PARENT] )   ) continue;
-            $salida = SELF::getBreadcrumbs((int)$categoria[SELF::ID_CATEGORY])." -> ".$salida;
-         
-            break;
-        }
-        return $salida; 
     }
+
+
+    /**
+     * Media: 0.001100871 ms
+     * Media: 0.001062971 ms
+     * Media: 0.000318582 ms
+     * Media: 0.000027259 ms
+     * Media: 0.000000699 ms
+     */
 
     /**
      * Magic function para imprimir el array de categorias

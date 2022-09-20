@@ -6,31 +6,21 @@ namespace Pro\Import;
 /**
  * Clase para imprimir en pantalla un arbol en HTML 
  * con los tags indicados (por defecto ul/li) 
- * @param array $arbol El arbol generado por 
+ * @param array $arbol FORMATO de array MINIMO:
+ *      ['id]: int|string id del elemento
+ *      ['id_parent']: int|string id del padre del elemento
+ *      ['name']: int|string Nombre del elemento
+ *      ['is_root']: bool|int|string true si es el elemento raiz, false si no
  * @param string Nivel superior
  * @param string Nivel Inferior
  * @return string HTML formateado
  */
 class Tree 
 {
-     /**
-     * Constantes utilizadas en las iteraciones del array de elementos
-     */
-    const ID_ELEMENT = 'id_category';
-    const NAME = 'name';
-    const PARENT = 'id_parent';
-    const IS_ROOT = 'is_root_category';
-
-
     /**
      * @var string HTML del arbol
      */
     public $html = "";
-
-    /**
-     * @var array Almacena el arbol
-     */
-    public $arbol = [];
 
 
     /**
@@ -45,58 +35,10 @@ class Tree
      */
     public function __construct(array $elementos, string $nivel = "ul", string $subnivel = "li")
     {
-        // Generamos arbol
-        $this->arbol = SELF::generaArbol($elementos);
+        
         // Generamos el HTML
-        $this->html = SELF::mostrarArbol($this->arbol, $nivel, $subnivel);
+        $this->html = SELF::mostrarArbol($elementos, $nivel, $subnivel);
         
-    }
-
-
-     /**
-     * Genera arbol de elementos
-     * @param array $elementos array de elementos
-     * @param int $index El nodo desde el que crear el arbol
-     * @return array Arbol resultante
-     */
-    public static function generaArbol(array $elementos, int $index = 0) : array
-    {
-        // Si no hay indice definido en la llamada al método, buscamos el primer elemento
-        if($index===0){
-            foreach ($elementos as $index => $elemento)
-            {
-                if($elemento[SELF::IS_ROOT] !== '1') continue;
-                // Construimos el Arbol en el array de la clase
-                $index = (int)$elemento[SELF::ID_ELEMENT];
-                break;
-            }
-        }
-        
-        $arbol = SELF::getElement($elementos, $index);
-        
-        // Le añadimos al array los hijos
-        foreach ($elementos as $elemento) 
-        {
-            if($elemento[SELF::PARENT]!==$arbol[SELF::ID_ELEMENT]) continue;
-            $arbol['children'][] = SELF::generaArbol($elementos,(int)$elemento[SELF::ID_ELEMENT]);  
-        }
-    
-        return $arbol;
-    }
-
-    /**
-     * Dado un id, devuelve el elemento
-     * 
-     * @param array $elementos array de elementos
-     * @param int $id_cat id de categoría
-     * @return array|bool (int)'id-category', (string)'id-name', (int)'id-parent', (int)'is_root', 'active'
-     */
-    public static function getElement(array $elementos, int $id_cat = 0) : array
-    {
-        // foreach ($this->listado as $elemento) if((int)$elemento[SELF::NAME]===$id_cat) return $elemento;
-        // return false;
-        if($id_cat) return $elementos[$id_cat];
-        else return false;
     }
 
     /**
@@ -114,7 +56,7 @@ class Tree
         $result = "";
 
         
-        $cat_name = $elementos[SELF::NAME];
+        $cat_name = $elementos['name'];
         $tieneHijos = count($elementos['children']);
 
         if($tieneHijos) $result .= "<".$subnivel.">".$cat_name;
