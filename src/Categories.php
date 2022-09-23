@@ -40,8 +40,11 @@ class Categories
     public function __construct()
     {
         // Obtenemos categorias de la BD
-        $this->listado = SELF::getCategories();
-        $this->arbol = SELF::generaArbol();
+        $this->listado = $this->getCategories();
+        
+        // Si tenemos un elemento raiz, construimos el árbol
+        if($this->buscarRaiz()) $this->arbol = $this->generaArbol();
+        
     }
 
     /**
@@ -50,31 +53,55 @@ class Categories
      * @param int $index El nodo desde el que crear el arbol
      * @return array Arbol resultante
      */
-    public static function generaArbol(int $indice = 0): array
+    public function generaArbol(int $indice = 0): array
     {
-        $elementos = SELF::getCategories(); // !ERROR No tiene sentido hacer esto ¿Porque? 
+        // $elementos = SELF::getCategories(); // !ERROR No tiene sentido hacer esto ¿Porque? 
+        // Al ser estática, tenía que recuperar los datos. Podía pasar los elementos como argumentos
+        // o quitar el static a la función. Como realmente tengo una propiedad arbol dentro de la clase,
+        // opté por pasarla a función normal.
 
         // Si no hay indice definido en la llamada al método, buscamos el primer elemento
-        if ($indice === 0) {
-            foreach ($elementos as $elemento) {
-                if ($elemento[SELF::IS_ROOT] !== '1') continue;
-                // Construimos el Arbol en el array de la clase
-                $indice = (int)$elemento[SELF::ID_CATEGORY];
-                break;
-            }
-        }
 
-        $arbol = SELF::getElement($elementos, $indice);
+        
+        $padres = array_column($this->listado,SELF::PARENT);
+        $cats = array_column($this->listado,SELF::ID_CATEGORY);
+        $padres = array_combine($cats, $padres);
 
-        // Le añadimos al array los hijos
-        foreach ($elementos as $index => $elemento) {
+        if ($indice === 0) $indice = $this->buscarRaiz();
+
+
+        $arbol = SELF::getElement($this->listado, $indice);
+
+        // Obtengo los id de los hijos del elemento $arbol['id_category'] en un array de ids
+        $hijos = array_keys($padres, $arbol[SELF::ID_CATEGORY]);
+        
+        // Le añadimos al array sus hijos
+        foreach ($hijos as $hijo) {
             // TODO revisar logica, esto tarda demasiado
-            if ((int)$elemento[SELF::PARENT] !== $indice) continue;
-            $arbol['children'][] = SELF::generaArbol($index);
+            // con la función array_keys reducimos la iteración a solo los elementos hijo
+            // También he creado nuevo método que busca la raiz, para hacer más legible
+            // el código
+            $arbol['children'][] = $this->generaArbol($hijo);
         }
 
         return $arbol;
     }
+
+    /**
+     * Función que retorna el id_category del elemento raiz del arbol si lo encuentra,
+     * false si no
+     * 
+     * @return int|bool id_category del elemento raiz
+     */
+    private function buscarRaiz() : ?int
+    {
+        foreach ($this->listado as $elemento) {
+            if ($elemento[SELF::IS_ROOT] === '1') return (int)$elemento[SELF::ID_CATEGORY];
+        }
+        return false;
+    }
+
+    
 
     /**
      * Dado un id, devuelve el elemento
@@ -83,12 +110,14 @@ class Categories
      * @param int $id_cat id de categoría
      * @return array|bool (int)'id-category', (string)'id_name', (int)'id_parent', (int)'is_root', 'active'
      */
-    private static function getElement(array &$elementos, int $id_cat = 0): array
+    private static function getElement(array $elementos, int $id_cat = 0) : ?array
     {
         // !ERROR: Descripcion de la funcion dice que puede retonar array o bool pero defines la funcion como retorno de array
+        // Seguramente fue un cambio posterior a la definición, ya está declarada como mixed
         // !ERROR: &$elementos ¿Para que necesitas hacer eso?
-        echo "<br>getelement: "; // !ERROR datos de prueba no se guardan en git
-        var_dump($elementos[$id_cat]);
+        // Al pasarle el array como referencia, evito duplicar en memoria la variable
+        //echo "<br>getelement: "; // !ERROR datos de prueba no se guardan en git
+        //var_dump($elementos[$id_cat]); // Se me olvidaron ahi :(
 
         if (!$id_cat) {
             return false;
@@ -101,9 +130,10 @@ class Categories
      * Método interno para obtener los dados de la BD y guardarlos en 
      * la propiedad $listado. Si se indica categoría, devuelve solo esa categoría
      * @param  int $categoria Id de categoria para filtrar resultados
-     * @return array ['id_category', 'name', 'id_parent', 'is_root_category', 'active']
+     * @return array ['id_category', 'name', 'id_parent', 'is_root_category', 'active'], puede estar vacío 
+     * si no encuentra categorías
      */
-    private static function getCategories(int $categoria = 0): array
+    private function getCategories(int $categoria = 0) : array
     {
         $filtro = '';
 
@@ -127,6 +157,11 @@ class Categories
         $elementos = \Db::getInstance()->executeS($request);
 
         // !ERROR: no se comprueba los posbiles retornos de sql
+        // executeS($request): @return array|false|mysqli_result|PDOStatement|resource|null
+        // En el contructor también evaluo si el resultado es un array, para actualizar las propiedades de la clase
+        $indices = [];
+
+        if(!is_array($elementos)) return $indices; // Si no me devuelve un array, devuelvo un array vacío
 
         $indices = array_column($elementos, 'id_category');
         $valores = array_values($elementos);
@@ -161,12 +196,12 @@ class Categories
      * Retorna un string con los breadcrumbs de la categoría indicada como argumento
      * 
      * @param int $id_category El id de categoría del que queremos obtener las migas de pan
-     * @param array $categorias El array de categorías sobre el que trabajar
      * @return string Breadcrumbs de la categoría
      */
     public function getBreadcrumbs(int $id_category): string
     {
         // ! ¿Mas parametros en la descripcion de la funcion que en la funcion?
+        // Modifiqué la función y no la descripción al quitarle el static :(
         if (!isset($this->listado[$id_category]) || $this->listado[$id_category]['id_parent'] === '0') {
             return "No existe la categoría o es la raíz";
         }
@@ -193,8 +228,8 @@ class Categories
     public function __toString()
     {
         $salida = "";
-        foreach ($this->listado as $categoria) {
-            $salida .= "<br>Categoria: " . $categoria[SELF::ID_CATEGORY] . ": " . $categoria[SELF::NAME];
+        foreach ($this->listado as $index => $categoria) {
+            $salida .= "<br>Categoria[".$index."]: " . $categoria[SELF::ID_CATEGORY] . ": " . $categoria[SELF::NAME]. " Padre: ".$categoria[SELF::PARENT];
         }
         return $salida;
     }
