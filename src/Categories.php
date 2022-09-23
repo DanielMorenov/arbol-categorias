@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Pro\Import;
@@ -29,50 +30,49 @@ class Categories
 
     private $arbol = [];
 
-    
-     /**
+
+    /**
      * Carga todas las Categorías en la propiedad $listado y las
      * ordena en un array con indice ID_CATEGORY
      * 
      * @return void
      */
-    public function __construct(){
+    public function __construct()
+    {
         // Obtenemos categorias de la BD
         $this->listado = SELF::getCategories();
         $this->arbol = SELF::generaArbol();
     }
 
-     /**
+    /**
      * Genera arbol de elementos
      * @param array $elementos array de elementos
      * @param int $index El nodo desde el que crear el arbol
      * @return array Arbol resultante
      */
-    public static function generaArbol(int $indice = 0) : array
+    public static function generaArbol(int $indice = 0): array
     {
-        $elementos = SELF::getCategories();
-        
+        $elementos = SELF::getCategories(); // !ERROR No tiene sentido hacer esto ¿Porque? 
+
         // Si no hay indice definido en la llamada al método, buscamos el primer elemento
-        if($indice===0){
-            foreach ($elementos as $elemento)
-            {
-                if($elemento[SELF::IS_ROOT] !== '1') continue;
+        if ($indice === 0) {
+            foreach ($elementos as $elemento) {
+                if ($elemento[SELF::IS_ROOT] !== '1') continue;
                 // Construimos el Arbol en el array de la clase
                 $indice = (int)$elemento[SELF::ID_CATEGORY];
                 break;
             }
         }
-        
+
         $arbol = SELF::getElement($elementos, $indice);
-        
+
         // Le añadimos al array los hijos
-        foreach ($elementos as $index => $elemento) 
-        {
-            if((int)$elemento[SELF::PARENT]!==$indice) continue;
-            $arbol['children'][] = SELF::generaArbol($index);  
-            
+        foreach ($elementos as $index => $elemento) {
+            // TODO revisar logica, esto tarda demasiado
+            if ((int)$elemento[SELF::PARENT] !== $indice) continue;
+            $arbol['children'][] = SELF::generaArbol($index);
         }
-    
+
         return $arbol;
     }
 
@@ -83,12 +83,18 @@ class Categories
      * @param int $id_cat id de categoría
      * @return array|bool (int)'id-category', (string)'id_name', (int)'id_parent', (int)'is_root', 'active'
      */
-    private static function getElement(array &$elementos, int $id_cat = 0) : array
+    private static function getElement(array &$elementos, int $id_cat = 0): array
     {
-        echo "<br>getelement: ";
+        // !ERROR: Descripcion de la funcion dice que puede retonar array o bool pero defines la funcion como retorno de array
+        // !ERROR: &$elementos ¿Para que necesitas hacer eso?
+        echo "<br>getelement: "; // !ERROR datos de prueba no se guardan en git
         var_dump($elementos[$id_cat]);
-        if($id_cat) return $elementos[$id_cat];
-        else return false;
+
+        if (!$id_cat) {
+            return false;
+        }
+
+        return $elementos[$id_cat];
     }
 
     /**
@@ -97,26 +103,31 @@ class Categories
      * @param  int $categoria Id de categoria para filtrar resultados
      * @return array ['id_category', 'name', 'id_parent', 'is_root_category', 'active']
      */
-    private static function getCategories(int $categoria = 0) : array
+    private static function getCategories(int $categoria = 0): array
     {
-        if($categoria) $filtro =  _DB_PREFIX_ . 'category.id_category = "'.$categoria.'"';
-        else $filtro = '1';
+        $filtro = '';
+
+        if ($categoria) {
+            $filtro =  "AND c.id_category = '{$categoria}' ";
+        }
 
         $request = '
             SELECT 
-                ' . _DB_PREFIX_ . 'category.id_category, 
-                ' . _DB_PREFIX_ . 'category_lang.name, 
-                ' . _DB_PREFIX_ . 'category.id_parent, 
-                ' . _DB_PREFIX_ . 'category.is_root_category
-            FROM ' . _DB_PREFIX_ . 'category 
-            INNER JOIN ' . _DB_PREFIX_ . 'category_lang
-            ON ' . _DB_PREFIX_ . 'category.id_category = ' . _DB_PREFIX_ . 'category_lang.id_category
-            WHERE ' . _DB_PREFIX_ . 'category_lang.id_lang = 1 
-            AND '.$filtro.' 
-            ORDER BY ' . _DB_PREFIX_ . 'category.id_parent ASC, ' . _DB_PREFIX_ . 'category.nleft ASC
+                c.id_category, 
+                cl.name, 
+                c.id_parent, 
+                c.is_root_category
+            FROM ' . _DB_PREFIX_ . 'category as c
+            INNER JOIN ' . _DB_PREFIX_ . 'category_lang as cl
+            ON c.id_category = cl.id_category
+            WHERE cl.id_lang = 1 ' . $filtro . ' 
+            ORDER BY c.id_parent ASC, c.nleft ASC
         ';
-    
+
         $elementos = \Db::getInstance()->executeS($request);
+
+        // !ERROR: no se comprueba los posbiles retornos de sql
+
         $indices = array_column($elementos, 'id_category');
         $valores = array_values($elementos);
 
@@ -129,7 +140,7 @@ class Categories
      * 
      * @return array Listado de categorías
      */
-    public function getListado() : array
+    public function getListado(): array
     {
         return $this->listado;
     }
@@ -140,7 +151,7 @@ class Categories
      * 
      * @return array Array de categorías
      */
-    public function getArbol() : array
+    public function getArbol(): array
     {
         return $this->arbol;
     }
@@ -155,11 +166,16 @@ class Categories
      */
     public function getBreadcrumbs(int $id_category): string
     {
-        if(!isset($this->listado[$id_category]) || $this->listado[$id_category]['id_parent']==='0') return "No existe la categoría o es la raíz";
-        
-        if( $this->listado[$id_category]['is_root_category'] === '1') return $this->listado[$id_category]['name'];
-        else return $this->getBreadcrumbs((int)$this->listado[$id_category]['id_parent'])." -> ".$this->listado[$id_category]['name'];
+        // ! ¿Mas parametros en la descripcion de la funcion que en la funcion?
+        if (!isset($this->listado[$id_category]) || $this->listado[$id_category]['id_parent'] === '0') {
+            return "No existe la categoría o es la raíz";
+        }
 
+        if ($this->listado[$id_category]['is_root_category'] === '1') {
+            return $this->listado[$id_category]['name'];
+        }
+
+        return $this->getBreadcrumbs((int)$this->listado[$id_category]['id_parent']) . " -> " . $this->listado[$id_category]['name'];
     }
 
 
@@ -177,9 +193,8 @@ class Categories
     public function __toString()
     {
         $salida = "";
-        foreach($this->listado as $categoria)
-        {
-            $salida .= "<br>Categoria: ".$categoria[SELF::ID_CATEGORY].": ".$categoria[SELF::NAME];
+        foreach ($this->listado as $categoria) {
+            $salida .= "<br>Categoria: " . $categoria[SELF::ID_CATEGORY] . ": " . $categoria[SELF::NAME];
         }
         return $salida;
     }
