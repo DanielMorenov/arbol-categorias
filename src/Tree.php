@@ -51,21 +51,44 @@ class Tree
      * 
      * @return string HTML del arbol jerarquizado
      */
-    public static function mostrarArbol(array $elementos, string $nivel = "ul", string $subnivel = "li") : string
+    public static function mostrarArbol(array $nodo) : string
     {
         $result = "";
 
+        // ! ¿Para que se utilizan las funciones staticas y las funciones normales?
+        // Las funciones estáticas no necesitan instanciar la clase, porque no tocan sus 
+        // propiedades
+        // TODO esta funcion se ve demasiado mal, tiene que ser rapidamente legible
+        // He decidido crear una subfunción para mostrar hijos, y mejorar legibilidad
+        // TODO esto genera el arbol pero no es como el de prestashop
+        // he cambiado código para que muestre como en prestashop (salvo checkbox, acordeon y 
+        // clases...) ahora la estructura del ul es la misma.
+       
+        if((bool)$nodo['is_root_category']) $result .= "<ul>";
         
-        $cat_name = $elementos['name'];
-        $tieneHijos = count($elementos['children']);
+        $result .= "<li>" . $nodo['name'] . SELF::mostrarHijos($nodo) . "</li>";  
 
-        if($tieneHijos) $result .= "<".$subnivel.">".$cat_name;
-        if($tieneHijos)  $result .= "<".$nivel.">";   
-        else $result .= "<".$subnivel.">".$cat_name."</".$subnivel.">";   
-        if($tieneHijos) foreach ($elementos['children'] as $item) $result .= SELF::mostrarArbol($item, $nivel, $subnivel);
-        if($tieneHijos) $result .= "</".$nivel.">";   
-        if($tieneHijos) $result .= "</".$subnivel.">";
+        if($nodo['is_root_category']) $result .= "</ul>";
         
+        return $result;
+    }
+
+    /**
+     * Recibe un nodo y devuelve una lista desordenada <ul>...</ul> con los hijos 
+     * (si los tiene)
+     * 
+     * @param array $nodo El nodo del que se quieren mostrar los hijos
+     * @return string HTML lista desordenada de hijos del nodo
+     */
+    public static function mostrarHijos(array $nodo) : string
+    {
+        $result = "";
+        if(count($nodo['children']) ) // Tiene hijos que mostrar
+        {
+            $result .= "<ul>"; 
+            foreach ($nodo['children'] as $item) $result .= SELF::mostrarArbol($item);
+            $result .= "</ul>";   
+        }
         return $result;
     }
 
@@ -79,3 +102,36 @@ class Tree
     }
 
 }
+
+// <ul class="category-tree">        
+//      <li class="less">
+//          Inicio                   <--------- is_root_category               
+//          <ul>
+//              <li class="less">
+//                  Clothes           <--------- 2º   
+//                  <ul>
+//                      <li>
+//                         Men        <--------- 3ª   
+//                      </li>
+//                      <li>
+//                          Women     <--------- 4ª
+//                      </li>
+//                  </ul>
+//              </li>
+//              <li class="less">
+//                 Accesorios
+//                 <ul>
+//                      <li>
+//                          Stationery
+//                      </li>
+//                      <li>
+//                          Home Accessories
+//                      </li>
+//                 </ul>
+//              </li>
+//              <li>
+//                 Art
+//              </li>
+//          </ul>
+//      </li>
+// </ul>

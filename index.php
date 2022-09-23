@@ -1,6 +1,7 @@
 <?php
 
 // Display errors
+// !ERROR: esto no funciona
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -13,6 +14,9 @@ require 'vendor/autoload.php';
 
 use Pro\Import\Tree;
 use Pro\Import\Categories;
+
+new Exception("Error Processing Request", 500);
+
 
 $categorias = new Categories();
 
