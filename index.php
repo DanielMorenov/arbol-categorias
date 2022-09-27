@@ -2,9 +2,10 @@
 
 // Display errors
 // !ERROR: esto no funciona
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
+
 
 // Inicializamos Prestashop
 
@@ -15,33 +16,39 @@ require 'vendor/autoload.php';
 use Pro\Import\Tree;
 use Pro\Import\Categories;
 
-new Exception("Error Processing Request", 500);
 
+// $this->context->controller->registerJavascript(
+//     'mymodule-javascript',
+//     $this->_path.'views/js/mymodule.js',
+//     [
+//         'position' => 'bottom',
+//         'priority' => 1000,
+//     ]
+// );
 
-$categorias = new Categories();
+$cats = new Categories();
 
-echo "<hr>";
+echo $cats;
 
-echo $categorias;
+echo "<hr><strong>Arbol de categorias: echo new Tree(\$cats->arbol)</strong><br>";
 
-echo "<hr>";
+echo new Tree($cats->arbol);
 
-echo $arbol = new Tree($categorias->getArbol());
+echo "<hr><strong>Autogeneración de 10 breadcrumbs aleatorios</strong>:<br>";
 
-
-
-echo "<hr>";
-
-for($i=0;$i<30;$i++) 
+for($i=0;$i<10;$i++) 
 {
     $j = rand(0,16);
     $in = microtime(true);
     echo "<br>getBreadcrumbs($j): ";
-    echo $categorias->getBreadcrumbs($j);
+    echo $cats->getBreadcrumbs($j);
     $out = microtime(true);
     $out -=$in;
     //echo "(".$out.")";
     $media += $out;
 }
 
-echo "<hr><br>Media: ".($media/30)."ms";
+echo "<hr><br>Media de ejecución: ".($media/10)."ms<br>";
+
+echo "<a href='views\mi-arbol.php'>Acceder</a>";
+
