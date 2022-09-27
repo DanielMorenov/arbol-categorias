@@ -5,15 +5,7 @@ namespace Pro\Import;
 
 /**
  * Clase para imprimir en pantalla un arbol en HTML 
- * con los tags indicados (por defecto ul/li) 
- * @param array $arbol FORMATO de array MINIMO:
- *      ['id]: int|string id del elemento
- *      ['id_parent']: int|string id del padre del elemento
- *      ['name']: int|string Nombre del elemento
- *      ['is_root']: bool|int|string true si es el elemento raiz, false si no
- * @param string Nivel superior
- * @param string Nivel Inferior
- * @return string HTML formateado
+ * 
  */
 class Tree 
 {
@@ -24,51 +16,41 @@ class Tree
 
 
     /**
-     * Muestra un arbol de categorias jerarquizado y en HTML, con parámetros
-     * de jerarquia y visualización opcionales
+     * Muestra un arbol de categorias jerarquizado en HTML, como listas desordenadas
      * 
-     * @param array $elementos Array a jerarquizar.
-     * @param string $nivel Nivel de jerarquia superior
-     * @param string $nivel Nivel de jerarquia inferior
+     * @param array $arbol Array a jerarquizar.
      * 
      * @return string HTML con el arbol jerarquizado
      */
-    public function __construct(array $elementos, string $nivel = "ul", string $subnivel = "li")
+    public function __construct(array $arbol)
     {
-        
-        // Generamos el HTML
-        $this->html = SELF::mostrarArbol($elementos, $nivel, $subnivel);
+        $this->html = SELF::mostrarArbol($arbol);
         
     }
 
     /**
-     * Recibe arbol en forma de array y lo muestra en HTML con la estructura
-     * deseada, por defecto <ul><li></li></ul>
+     * Recibe arbol en forma de array y lo muestra en HTML con la estructura <ul> - <li>
      * 
-     * @param array $elementos Arbol en formato array
-     * @param string $nivel estructura jerarquica superior
-     * @param string $subnivel estructura jerarquica inferior
+     * @param array $nodo Arbol en formato array
+     * @param int $step Representa el numero de llamadas a la función hechas
      * 
      * @return string HTML del arbol jerarquizado
      */
-    public static function mostrarArbol(array $nodo) : string
+    public static function mostrarArbol(array $nodo, int $step = 0) : string
     {
         $result = "";
-
-        // ! ¿Para que se utilizan las funciones staticas y las funciones normales?
-        // Las funciones estáticas no necesitan instanciar la clase, porque no tocan sus 
-        // propiedades
-        // TODO esta funcion se ve demasiado mal, tiene que ser rapidamente legible
-        // He decidido crear una subfunción para mostrar hijos, y mejorar legibilidad
-        // TODO esto genera el arbol pero no es como el de prestashop
-        // he cambiado código para que muestre como en prestashop (salvo checkbox, acordeon y 
-        // clases...) ahora la estructura del ul es la misma.
-       
-        if((bool)$nodo['is_root_category']) $result .= "<ul>";
         
-        $result .= "<li>" . $nodo['name'] . SELF::mostrarHijos($nodo) . "</li>";  
+        // TODO esto genera el arbol pero no es como el de prestashop (No solucionado)
+       
+        if($step===0) $result .= "<ul class='category-tree'><li class='main-category'>Categoría principal</li>";
+        
+        $result .= "<li><i id='label-".($step+1)."' class='material-icons'>arrow_drop_down</i><div class='contenedor'>";
+        $result .= "<input type='checkbox' name = 'categoriasel[]' value = '".$nodo['id_category']."' class='main-category'>" . $nodo['name'];
+        $result .= "<input type='radio' value='".$nodo['id_category']."' name='ignore' class='default-category'>";
+        $result .= SELF::mostrarHijos($nodo,++$step);
+        $result .= "</div></li>";  
 
-        if($nodo['is_root_category']) $result .= "</ul>";
+        if($step===0) $result .= "</ul>";
         
         return $result;
     }
@@ -78,16 +60,17 @@ class Tree
      * (si los tiene)
      * 
      * @param array $nodo El nodo del que se quieren mostrar los hijos
+     * @param int $step el numero de llamadas a la función hechas
      * @return string HTML lista desordenada de hijos del nodo
      */
-    public static function mostrarHijos(array $nodo) : string
+    public static function mostrarHijos(array $nodo, $step) : string
     {
         $result = "";
         if(count($nodo['children']) ) // Tiene hijos que mostrar
         {
-            $result .= "<ul>"; 
-            foreach ($nodo['children'] as $item) $result .= SELF::mostrarArbol($item);
-            $result .= "</ul>";   
+            $result .= "<div id='".$step."'><ul>"; 
+            foreach ($nodo['children'] as $item) $result .= SELF::mostrarArbol($item, ++$step);
+            $result .= "</ul></div>";   
         }
         return $result;
     }
@@ -102,36 +85,3 @@ class Tree
     }
 
 }
-
-// <ul class="category-tree">        
-//      <li class="less">
-//          Inicio                   <--------- is_root_category               
-//          <ul>
-//              <li class="less">
-//                  Clothes           <--------- 2º   
-//                  <ul>
-//                      <li>
-//                         Men        <--------- 3ª   
-//                      </li>
-//                      <li>
-//                          Women     <--------- 4ª
-//                      </li>
-//                  </ul>
-//              </li>
-//              <li class="less">
-//                 Accesorios
-//                 <ul>
-//                      <li>
-//                          Stationery
-//                      </li>
-//                      <li>
-//                          Home Accessories
-//                      </li>
-//                 </ul>
-//              </li>
-//              <li>
-//                 Art
-//              </li>
-//          </ul>
-//      </li>
-// </ul>
