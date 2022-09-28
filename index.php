@@ -30,9 +30,6 @@ $cats = new Categories();
 
 echo $cats;
 
-echo "<hr><strong>Arbol de categorias: echo new Tree(\$cats->arbol)</strong><br>";
-
-echo new Tree($cats->arbol);
 
 echo "<hr><strong>Autogeneración de 10 breadcrumbs aleatorios</strong>:<br>";
 
