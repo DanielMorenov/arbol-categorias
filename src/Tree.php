@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Pro\Import;
@@ -8,7 +7,7 @@ namespace Pro\Import;
  * Clase para imprimir en pantalla un arbol en HTML 
  * 
  */
-class Tree
+class Tree 
 {
     /**
      * @var string HTML del arbol
@@ -21,61 +20,69 @@ class Tree
      * 
      * @param array $arbol Array a jerarquizar.
      * 
-     * @return string HTML con el arbol jerarquizado //! ERROR ¿Retorna algo?
+     * @return string HTML con el arbol jerarquizado
      */
     public function __construct(array $arbol)
     {
-        $this->html = SELF::mostrarArbol($arbol);
+        $this->html = "<form action=''><ul class='category-tree'><div id='nube_cat'><span id='sincat'>Sin categorías</span></div><li class='main-category'>Categoría principal</li>";
+        $this->html .= SELF::mostrarNodo($arbol);
+        $this->html .= "</ul></form>";
     }
 
     /**
      * Recibe arbol en forma de array y lo muestra en HTML con la estructura <ul> - <li>
      * 
      * @param array $nodo Arbol en formato array
-     * @param int $step Representa el numero de llamadas a la función hechas
      * 
      * @return string HTML del arbol jerarquizado
      */
-    public static function mostrarArbol(array $nodo, int $step = 0): string
+    public static function mostrarNodo(array $nodo) : string
     {
         $result = "";
-
-        if ($step === 0) $result .= "<ul class='category-tree'><li class='main-category'>Categoría principal</li>";
-
-        $result .= "<li><i id='label-" . ($step + 1) . "' class='material-icons'>arrow_drop_down</i><div class='contenedor'>";
-        $result .= "<input type='checkbox' name = 'categoriasel[]' value = '" . $nodo['id_category'] . "' class='main-category'>" . $nodo['name'];
-        $result .= "<input type='radio' value='" . $nodo['id_category'] . "' name='ignore' class='default-category'>";
-        $result .= SELF::mostrarHijos($nodo, ++$step);
-        $result .= "</div></li>";
-
-        if ($step === 0) $result .= "</ul>";
-
+        
+        $result .= "<li><i id='label-".$nodo['id_category']."' class='material-icons'>arrow_drop_down</i><div class='contenedor'>";
+        $result .= "<input type='checkbox' name = 'categoriasel[]' value = '".$nodo['name']."' class='main-category'>" . $nodo['name'];
+        $result .= "<input type='radio' value='".$nodo['id_category']."' name='ignore' class='default-category'>";
+        $result .= SELF::mostrarHijos($nodo);
+        $result .= "</div></li>";  
+        
         return $result;
     }
 
     /**
-     * Recibe un nodo y devuelve una lista desordenada <ul>...</ul> con los hijos (si los tiene)
+     * Recibe un nodo y devuelve una lista desordenada <ul>...</ul> con los hijos 
+     * (si los tiene)
      * 
      * @param array $nodo El nodo del que se quieren mostrar los hijos
-     * @param int $step el numero de llamadas a la función hechas
      * 
      * @return string HTML lista desordenada de hijos del nodo
      */
-    public static function mostrarHijos(array $nodo, $step): string
+    public static function mostrarHijos(array $nodo) : string
     {
-        if (!count($nodo['children']))
+        $result = "";
+        if(count($nodo['children']) ) // Tiene hijos que mostrar
         {
-            return '';
+            $result .= "<div id='".$nodo['id_category']."'><ul>"; 
+            foreach ($nodo['children'] as $item) 
+            {
+                $result .= SELF::mostrarNodo($item);
+            }
+            $result .= "</ul></div>";   
         }
-
-        $result = "<div id='" . $step . "'><ul>";
-
-        foreach ($nodo['children'] as $item) {
-            $result .= SELF::mostrarArbol($item, ++$step);
-        }
-
-        return $result . "</ul></div>";
+        return $result;
     }
+
+    /**
+     * Retorna el arbol en formato HTML
+     * 
+     * @return string 
+     */
+    public function get()
+    {
+        return $this->html;
+    }
+
+
 
     /**
      * Magic Function representar objeto en HTML
@@ -84,4 +91,5 @@ class Tree
     {
         return $this->html;
     }
+
 }
