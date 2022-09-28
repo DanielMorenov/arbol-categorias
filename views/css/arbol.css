@@ -1,31 +1,29 @@
-ul
-{
-    list-style:none;
-    padding-left: 20px;
+ul {
+  list-style: none;
+  padding-left: 20px;
 }
 
-li{
-    width:100%;
+li {
+  width: 100%;
 }
 
-.contenedor{
-    display:inline;
-    vertical-align:top;  
-    width:100%;
+.contenedor {
+  display: inline;
+  vertical-align: top;
+  width: 100%;
 }
-.main-category{
-    text-align:right;
-}
-
-.default-category{
- float:right;
- position:relative;
-}
-.category-frame{
-    max-width:500px;
-    padding: 10px;
-    border: 1px solid grey;
+.main-category {
+  text-align: right;
 }
 
+.default-category {
+  float: right;
+  position: relative;
+}
+.category-frame {
+  max-width: 500px;
+  padding: 10px;
+  border: 1px solid grey;
+}
 
-
+/* TODO Cuando se acerque al desplegable del arbol mostrar una mano  */
