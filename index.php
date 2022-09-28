@@ -1,23 +1,22 @@
 <?php
 
-// Display errors
-// !ERROR: esto no funciona, Das la solución por correo pero no lo resuelves en el codigo
+// Display errors pero definimos antes modo debug en PS, antes que lo haga PS con el valor que tenga configurada la tienda
+define('PS_MODE_DEV', true);
+
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
-use Pro\Import\Tree; // !ERROR necesitas esta clase?
+
 use Pro\Import\Categories;
 
 // Inicializamos Prestashop
 if (!defined('_PS_VERSION_')) {
-    include(dirname(__FILE__) . '/../../../config/config.inc.php'); // El proyecto tiene que estar almacenado en la carpeta import como se dijo en las especificaciones del proyecto
+    include(dirname(__FILE__) . '../../config/config.inc.php'); // El proyecto tiene que estar almacenado en la carpeta import como se dijo en las especificaciones del proyecto
 }
 
 require 'vendor/autoload.php';
 
-
-new Exception("Error Processing Request", 500); //! No se suben datos de prueba a git
 
 $cats = new Categories();
 echo $cats;
