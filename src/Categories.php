@@ -19,14 +19,12 @@ namespace Pro\Import;
 class Categories
 {
     /**
-     * @var array Almacena el arbol de categorías, en un array con la estructura:
-     *               ["id_category"] ["name"] ["id_parent"] ["is_root_category"] ["children"]
+     * @var array Almacena el arbol de categorías, en un array con la estructura: ["id_category"] ["name"] ["id_parent"] ["is_root_category"] ["children"]
      */
     public $arbol = [];
 
     /**
-     * @var array Almacena el array de categorias sin jerarquizar, indexadas por id_category:
-     *               array["id_category"] = ["id_category"] ["name"] ["id_parent"] ["is_root_category"] 
+     * @var array Almacena el array de categorias sin jerarquizar, indexadas por id_category: array["id_category"] = ["id_category"] ["name"] ["id_parent"] ["is_root_category"] 
      */
     public $categorias = [];
 
@@ -41,55 +39,50 @@ class Categories
     public $raiz = 0;
 
     /**
-     * Carga todas las categorías recogidas de la BD en el $arbol y guarda la $raiz del arbol, el array de $categorias
-     * y el $mapa de [padres][categorias]
+     * Carga todas las categorías recogidas de la BD en el $arbol y guarda la $raiz del arbol, el array de $categorias y el $mapa de [padres][categorias]
      * 
      * @return void 
      */
     public function __construct()
     {
-        if($this->getCategories()) // Obtenemos las categorias en $this->categorias
-            // Construimos el árbol de categorias
-            $this->arbol['children'] = $this->generaArbol($this->raiz);
-    
-        else echo "No se pueden cargar las categorías";
-        
+        if (!$this->getCategories()) {
+            throw new \Exception("No se pueden cargar las categorías", 500);
+        }
+
+        // Construimos el árbol de categorias
+        $this->arbol['children'] = $this->generaArbol($this->raiz);
     }
 
-
-
     /**
-     * Genera arbol de categorias partiendo de la categoria raiz y almacena el arbol
-     * en la propiedad $this->arbol.
+     * Genera arbol de categorias partiendo de la categoria raiz y almacena el arbol en la propiedad $this->arbol.
      *
      * @param int $indice El nodo desde el que crear el arbol. 0 para la raiz (por defecto)
-     * @return array Arbol con raiz el nodo cuya id_category se pasa como argumento $indice, o un
-     *                  array vacío si no obtiene las categorias.
+     * 
+     * @return array Arbol con raiz el nodo cuya id_category se pasa como argumento $indice, o un array vacío si no obtiene las categorias.
      */
     private function generaArbol(int $indice = 0): array
     {
         $arbol = [];
-        if(!isset($this->mapa[$indice])) return $arbol;
-        foreach ($this->mapa[$indice] as $index => $categoria)
-        { 
-            $categoria['children'] = $this->generaArbol($index);
-            $arbol[] = $categoria;  
+        if (!isset($this->mapa[$indice])) {
+            return $arbol;
         }
-        
+
+
+        foreach ($this->mapa[$indice] as $index => $categoria) {
+            $categoria['children'] = $this->generaArbol($index);
+            $arbol[] = $categoria;
+        }
+
         return $arbol;
     }
 
-
-
     /**
-     * Método interno para obtener las categorías de la BD y guardarlas en la propiedad $categorias, $mapa y $raiz.
-     * Se guardan indexando id_category para agilizar las búsquedas.
+     * Método interno para obtener las categorías de la BD y guardarlas en la propiedad $categorias, $mapa y $raiz. Se guardan indexando id_category para agilizar las búsquedas.
      * 
      * @return bool Si no encuentra categorías o la raiz, retorna falso, si obtenemos un array no vacío, devuelve true
      */
-    private function getCategories() : bool
+    private function getCategories(): bool
     {
-
         $request = '
             SELECT 
                 c.id_category, 
@@ -105,86 +98,79 @@ class Categories
 
         $elementos = \Db::getInstance()->executeS($request);
 
-        // La consulta puede devolver array|false|mysqli_result|PDOStatement|resource|null
+        if (!is_array($elementos)) {
+            return false;
+        }
 
-        // Comprobamos si nos devuelve un array, para cargar las categorías en la propiedad
-        // Si no consigue un array, o consigue un array vacio, devuelve false
-        if(!is_array($elementos)) return false; 
-
-        // Creamos $this->mapa con indices [padre][categoria] y guardamos el id del raiz
-        foreach ($elementos as $categoria)
-        {
-            // Creamos $this->categorias con los arrays de categorias obtenidos, e indice su id_category
+        foreach ($elementos as $categoria) {
             $this->categorias[$categoria['id_category']] = $categoria;
             $this->mapa[$categoria['id_parent']][$categoria['id_category']] = $categoria;
-            if((bool)$categoria['is_root_category'])
-            {
+            if ((bool)$categoria['is_root_category']) {
                 $this->raiz = (int)$categoria['id_category'];
                 $this->arbol = $categoria;
             }
         }
-        if($this->raiz===0) return false; //No ha encontrado la raiz
+
+        if ($this->raiz === 0) {
+            return false;
+        }
 
         return true;
     }
 
-
-
-     /**
+    /**
      * Retorna un string con los breadcrumbs de la categoría indicada como argumento
      * 
      * @param int $id_category El id de categoría del que queremos obtener las migas de pan
-     * @return string Breadcrumbs de la categoría si existe y no es la raiz, un string vacío
-     *                  en caso contrario.
+     * 
+     * @return string Breadcrumbs de la categoría si existe y no es la raiz, un string vacío en caso contrario.
      */
     public function getBreadcrumbs(int $id_category): string
-    { 
-        if (!isset($this->categorias[$id_category]) || $this->categorias[$id_category]['id_parent'] === '0')
+    {
+        if (!isset($this->categorias[$id_category]) || $this->categorias[$id_category]['id_parent'] === '0') {
             return "";
+        }
 
-        if ($id_category === $this->raiz)
+        if ($id_category === $this->raiz) {
             return $this->categorias[$id_category]['name'];
+        }
 
         return $this->getBreadcrumbs((int)$this->categorias[$id_category]['id_parent']) . " -> " . $this->categorias[$id_category]['name'];
     }
-
-
 
     /**
      * Imprime las Categorias y el árbol de categorías en pantalla con formato
      * 
      * @return string HTML básico con tabulaciones para preformatear las categorias y su arbol en pantalla
      */
-    public function __toString() : string
+    public function __toString(): string
     {
-       $salida = "<br>Categorias obtenidas:<br>";
-       foreach($this->categorias as $index => $categoria) $salida .= "<br>Categoria[".$index."]: ".$categoria['name'];
+        $salida = "<br>Categorias obtenidas:<br>";
+        foreach ($this->categorias as $index => $categoria) $salida .= "<br>Categoria[" . $index . "]: " . $categoria['name'];
 
-       $salida .= "<br><br>Arbol de Categorias preformateado:<br><br>";
-       $salida .= $this->arbol['name']."<br>". $this->mostrarHijos((int)$this->arbol['id_category']);
+        $salida .= "<br><br>Arbol de Categorias preformateado:<br><br>";
+        $salida .= $this->arbol['name'] . "<br>" . $this->mostrarHijos((int)$this->arbol['id_category']);
 
-       return $salida;
+        return $salida;
     }
 
-
     /**
-     * Función recursiva usada para formatear el arbol de categorías en pantalla, mostrando una pequeña
-     * tabulación para los hijos
+     * Función recursiva usada para formatear el arbol de categorías en pantalla, mostrando una pequeña tabulación para los hijos
      * 
      * @param int $id el id_category de la categoría a mostrar sus hijos
      * @param int $deep nivel de profundidad del arbol para calcular las tabulaciones
+     * 
      * @return string $salida HTML formateado para mostrar en pantalla
      */
-    private function mostrarHijos(int $id, int $deep = 0) : string
+    private function mostrarHijos(int $id, int $deep = 0): string
     {
         $deep += 3;
         $salida = "";
-        if(!isset($this->mapa[$id])) return $salida;
-        foreach($this->mapa[$id] as $hijo) 
-        {
-            for ($i=0;$i<$deep;$i++) $salida .= "&nbsp;";
-            $salida .= $hijo['name']."<br>".$this->mostrarHijos((int)$hijo['id_category'],$deep);
-        }  
+        if (!isset($this->mapa[$id])) return $salida;
+        foreach ($this->mapa[$id] as $hijo) {
+            for ($i = 0; $i < $deep; $i++) $salida .= "&nbsp;";
+            $salida .= $hijo['name'] . "<br>" . $this->mostrarHijos((int)$hijo['id_category'], $deep);
+        }
         return $salida;
     }
 }
