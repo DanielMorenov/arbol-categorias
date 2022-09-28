@@ -48,8 +48,11 @@ class Categories
      */
     public function __construct()
     {
-        // Construimos el árbol de categorias
-        $this->arbol = $this->generaArbol();
+        if($this->getCategories()) // Obtenemos las categorias en $this->categorias
+            // Construimos el árbol de categorias
+            $this->arbol['children'] = $this->generaArbol($this->raiz);
+    
+        else echo "No se pueden cargar las categorías";
         
     }
 
@@ -67,23 +70,12 @@ class Categories
     {
         $arbol = [];
 
-        if($indice === 0) // Raiz del arbol
-        {
-            if($this->getCategories()) // Obtenemos las categorias en $this->categorias
-            {
-                $arbol = $this->categorias[$this->raiz]; // Obtenemos categoria raiz
-                $arbol['children'] = $this->generaArbol((int)$arbol['id_category']);
-            }
-            else return $arbol; // Si no obtenemos categorías, devolvemos un arbol vacío
+        foreach ($this->mapa[$indice] as $index => $categoria)
+        { 
+            $categoria['children'] = $this->generaArbol($index);
+            $arbol[] = $categoria;  
         }
-        else // Cargamos los hijos de la categoría $indice e iteramos
-        {
-            foreach ($this->mapa[$indice] as $index => $categoria)
-            { 
-                $categoria['children'] = $this->generaArbol($index);
-                $arbol[] = $categoria;  
-            }
-        }
+        
         return $arbol;
     }
 
@@ -118,18 +110,18 @@ class Categories
         // Comprobamos si nos devuelve un array, para cargar las categorías en la propiedad
         // Si no consigue un array, o consigue un array vacio, devuelve false
         if(!is_array($elementos)) return false; 
-        if(count($elementos)===0) return false;
-
-        // Creamos $this->categorias con los arrays de categorias obtenidos, e indice su id_category
-        $indices = array_column($elementos, 'id_category');
-        $valores = array_values($elementos);
-        $this->categorias = array_combine($indices, $valores);
 
         // Creamos $this->mapa con indices [padre][categoria] y guardamos el id del raiz
         foreach ($elementos as $categoria)
         {
+            // Creamos $this->categorias con los arrays de categorias obtenidos, e indice su id_category
+            $this->categorias[$categoria['id_category']] = $categoria;
             $this->mapa[$categoria['id_parent']][$categoria['id_category']] = $categoria;
-            if((bool)$categoria['is_root_category']) $this->raiz = (int)$categoria['id_category'];
+            if((bool)$categoria['is_root_category'])
+            {
+                $this->raiz = (int)$categoria['id_category'];
+                $this->arbol = $categoria;
+            }
         }
         if($this->raiz===0) return false; //No ha encontrado la raiz
 
