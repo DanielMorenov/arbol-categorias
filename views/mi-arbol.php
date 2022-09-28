@@ -3,15 +3,16 @@
 use Pro\Import\Categories;
 use Pro\Import\Tree;
 
+
 if (!defined('_PS_VERSION_')) {
-    include(dirname(__FILE__) . '/../../../config/config.inc.php'); // El proyecto tiene que estar almacenado en la carpeta import como se dijo en las especificaciones del proyecto
+    include(__DIR__ . '/../../config/config.inc.php'); // El proyecto tiene que estar almacenado en la carpeta import como se dijo en las especificaciones del proyecto
 }
 
-require '../vendor/autoload.php';
+require __DIR__ . '../../vendor/autoload.php';
 
 $cats = new Categories();
 $tree = new Tree($cats->arbol);
-// $html = $tree->get(); // TODO hay que hacer la funcion get(), la clase sino no tiene sentido ni usabilidad
+$html = $tree->get(); // TODO hay que hacer la funcion get(), la clase sino no tiene sentido ni usabilidad
 
 //!Error las categorias sin hijos se muestran como si los tuviese
 //! ERROR el archivo views/arbol.tpl no se utiliza y no esta almacenado correctamente views/TEMPLATES/arbol.tpl
