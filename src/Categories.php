@@ -69,7 +69,7 @@ class Categories
     private function generaArbol(int $indice = 0): array
     {
         $arbol = [];
-
+        if(!isset($this->mapa[$indice])) return $arbol;
         foreach ($this->mapa[$indice] as $index => $categoria)
         { 
             $categoria['children'] = $this->generaArbol($index);
@@ -179,6 +179,7 @@ class Categories
     {
         $deep += 3;
         $salida = "";
+        if(!isset($this->mapa[$id])) return $salida;
         foreach($this->mapa[$id] as $hijo) 
         {
             for ($i=0;$i<$deep;$i++) $salida .= "&nbsp;";
