@@ -128,7 +128,7 @@ class Categories
     public function getBreadcrumbs(int $id_category): string
     {
         if (!isset($this->categorias[$id_category]) || $this->categorias[$id_category]['id_parent'] === '0') {
-            return "";
+            return "No existe la categoría o es la Raíz";
         }
 
         if ($id_category === $this->raiz) {
