@@ -49,6 +49,6 @@ li{
 }
 
 /* TODO Cuando se acerque al desplegable del arbol mostrar una mano  */
-input{
+i{
     cursor: pointer;
 }
