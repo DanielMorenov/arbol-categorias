@@ -83,6 +83,7 @@ class Categories
      */
     private function getCategories(): bool
     {
+        //! id lang puede cambiar.
         $request = '
             SELECT 
                 c.id_category, 
@@ -146,12 +147,11 @@ class Categories
     public function __toString(): string
     {
         $salida = "<br>Categorias obtenidas:<br>";
-        foreach ($this->categorias as $index => $categoria) $salida .= "<br>Categoria[" . $index . "]: " . $categoria['name'];
+        foreach ($this->categorias as $index => $categoria) {
+            $salida .= "<br>Categoria[" . $index . "]: " . $categoria['name'];
+        }
 
-        $salida .= "<br><br>Arbol de Categorias preformateado:<br><br>";
-        $salida .= $this->arbol['name'] . "<br>" . $this->mostrarHijos((int)$this->arbol['id_category']);
-
-        return $salida;
+        return $salida . "<br><br>Arbol de Categorias preformateado:<br><br>" . $this->arbol['name'] . "<br>" . $this->mostrarHijos((int)$this->arbol['id_category']);
     }
 
     /**

@@ -1,21 +1,28 @@
 <?php
 
+// Display errors pero definimos antes modo debug en PS, antes que lo haga PS con el valor que tenga configurada la tienda
+//define('_PS_MODE_DEV_', true);
+
+if (!defined('_PS_VERSION_')) {
+    include(__DIR__ . '/../../../config/config.inc.php');
+}
+
+// A pesar que PS haya podido modificar estos valores en php.ini, los volvemos a configurar para que muestren los errores
+ini_set('display_errors', 'on');
+error_reporting(E_ALL);
+
+// Cargamos composer
+require '../vendor/autoload.php';
+
 use Pro\Import\Categories;
 use Pro\Import\Tree;
 
-
-if (!defined('_PS_VERSION_')) {
-    include(__DIR__ . '/../../config/config.inc.php'); // El proyecto tiene que estar almacenado en la carpeta import como se dijo en las especificaciones del proyecto
-}
-
-require __DIR__ . '../../vendor/autoload.php';
-
 $cats = new Categories();
-$tree = new Tree($cats->arbol);
-$html = $tree->get(); // TODO hay que hacer la funcion get(), la clase sino no tiene sentido ni usabilidad
 
-//!Error las categorias sin hijos se muestran como si los tuviese
-//! ERROR el archivo views/arbol.tpl no se utiliza y no esta almacenado correctamente views/TEMPLATES/arbol.tpl
+$tree = new Tree($cats->arbol);
+
+$html = $tree->get();
+
 ?>
 
 <!DOCTYPE html>
@@ -36,7 +43,7 @@ $html = $tree->get(); // TODO hay que hacer la funcion get(), la clase sino no t
 
 <body>
     <div class='category-frame'>
-        <?php echo $tree; ?>
+        <?php echo $html; ?>
     </div>
 </body>
 

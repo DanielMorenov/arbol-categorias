@@ -48,7 +48,7 @@ li{
     background-color:#595d5e!important;
 }
 
-/* TODO Cuando se acerque al desplegable del arbol mostrar una mano  */
-i{
+/* TODO Cuando se acerque al desplegable del arbol mostrar una mano  */ Esto no se sube
+.childrens{
     cursor: pointer;
 }

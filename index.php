@@ -1,22 +1,23 @@
 <?php
 
 // Display errors pero definimos antes modo debug en PS, antes que lo haga PS con el valor que tenga configurada la tienda
-define('PS_MODE_DEV', true);
+//define('_PS_MODE_DEV_', true); // No se suben los datos que no son necesarios
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
-
-use Pro\Import\Categories;
 
 // Inicializamos Prestashop
 if (!defined('_PS_VERSION_')) {
-    include(dirname(__FILE__) . '../../config/config.inc.php'); // El proyecto tiene que estar almacenado en la carpeta import como se dijo en las especificaciones del proyecto
+    include(dirname(__FILE__) . '/../../config/config.inc.php');
 }
 
+// A pesar que PS haya podido modificar estos valores en php.ini, los volvemos a configurar para que muestren los errores
+ini_set('display_errors', 'on');
+error_reporting(E_ALL);
+
+// Cargamos composer
 require 'vendor/autoload.php';
 
+
+use Pro\Import\Categories;
 
 $cats = new Categories();
 echo $cats;
